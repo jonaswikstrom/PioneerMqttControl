@@ -14,6 +14,7 @@ namespace PioneerControlToMqtt.MessageHandlers
         private readonly Lazy<IPioneerConnection> pioneerConnection;
         private readonly IMqttClient mqttClient;
         private int? currentVolume;
+        private bool volumeChange;
 
         public VolumeMessageHandler(ILogger<VolumeMessageHandler> logger, IConfiguration configuration, 
             Lazy<IPioneerConnection> pioneerConnection, IMqttClient mqttClient) : base(configuration, mqttClient)
@@ -26,6 +27,8 @@ namespace PioneerControlToMqtt.MessageHandlers
         protected override Regex Regex => new Regex(@"^VOL\d\d\d$");
         protected override async Task DoHandleMessage(string message)
         {
+            if (volumeChange == true) return;
+
             var volume = int.Parse(message.Replace("VOL", ""));
             currentVolume = volume;
             logger.LogInformation($"Volume: {volume}");
@@ -40,19 +43,22 @@ namespace PioneerControlToMqtt.MessageHandlers
             if (!int.TryParse(payload, out var volume)) return;
             if (volume > MaxVolume || volume < 0) return;
 
+            volumeChange = true;
+            currentVolume = null;
+
             var cts = new CancellationTokenSource(TimeSpan.FromSeconds(1));
             var connection = pioneerConnection.Value;
-            currentVolume = null;
             await connection.SendCommandAsync(PioneerCommand.VolumeInfo);
 
             do
             {
-                await Task.Delay(500, cts.Token);
+                await Task.Delay(300, cts.Token);
             } while (!cts.IsCancellationRequested && !currentVolume.HasValue);
 
             if (!currentVolume.HasValue)
             {
                 logger.LogError("Current volume not set, exiting");
+                volumeChange = false;
                 return;
             }
 
@@ -62,7 +68,7 @@ namespace PioneerControlToMqtt.MessageHandlers
             do
             {
                 await connection.SendCommandAsync(volumeCommand);
-                Thread.Sleep(500);
+                await Task.Delay(300, CancellationToken.None);
 
                 if (volumeCommand == PioneerCommand.VolumeDown && currentVolume <= volume) break;
                 if (volumeCommand == PioneerCommand.VolumeUp && currentVolume >= volume) break;
@@ -70,6 +76,9 @@ namespace PioneerControlToMqtt.MessageHandlers
                 if (currentVolume == volume) break;
                 if (currentVolume >= MaxVolume) break;
             } while (!cts.IsCancellationRequested);
+
+            volumeChange = false;
+            await connection.SendCommandAsync(PioneerCommand.VolumeInfo);
         }
     }
 }
