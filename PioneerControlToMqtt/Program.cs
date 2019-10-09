@@ -25,7 +25,6 @@ namespace PioneerControlToMqtt
                     .AddSingleton<IMessageHandler, PowerMessageHandler>()
                     .AddSingleton<IMessageHandler, VolumeMessageHandler>()
                     .AddSingleton<IMessageHandler, InputMessageHandler>()
-                    .AddSingleton<IConnectionHandler, ConnectionHandler>()
                     .AddHostedService<PioneerControlHost>()
                     .AddTransient(provider => new Lazy<IPioneerConnection>(provider.GetService<IPioneerConnection>));
             });

@@ -33,16 +33,6 @@ namespace PioneerControlToMqtt.Mqtt
 
         public async Task ConnectAsync()
         {
-            client.UseDisconnectedHandler(async e =>
-            {
-                if (e.Exception != null)
-                    logger.LogError("An unknown error occured", e.Exception);
-
-                await Task.Delay(TimeSpan.FromSeconds(5));
-                logger.LogInformation("Reconnecting"); 
-                await client.ReconnectAsync();
-            });
-
             logger.LogInformation($"Connecting MQTT on {configuration.MqttHostName}");
 
             await client.ConnectAsync(options, CancellationToken.None);
@@ -67,11 +57,6 @@ namespace PioneerControlToMqtt.Mqtt
             logger.LogInformation($"Subscribed to topic '{configuration.TopicRoot}/{topic}'");
         }
 
-        public async Task DisconnectAsync()
-        {
-            await client?.DisconnectAsync();
-        }
-
         public async Task PublishAsync(string topic, string payload)
         {
             var message = new MqttApplicationMessageBuilder()
@@ -84,7 +69,11 @@ namespace PioneerControlToMqtt.Mqtt
             logger.LogInformation($"Pubished '{configuration.TopicRoot}/{topic} {payload}'");
         }
 
-
+        public async Task DisconnectAsync()
+        {
+            if (client == null) return;
+            await client.DisconnectAsync();
+        }
 
         public void Dispose()
         {

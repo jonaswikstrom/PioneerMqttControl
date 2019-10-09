@@ -13,16 +13,13 @@ namespace PioneerControlToMqtt
     public class PioneerConnection : IPioneerConnection
     {
         private readonly ILogger<PioneerConnection> logger;
-        private readonly IConnectionHandler connectionHandler;
         private readonly IEnumerable<IMessageHandler> messageHandlers;
         private readonly PioneerConnectionInfo connectionInfo;
         private readonly Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-        public PioneerConnection(ILogger<PioneerConnection> logger, IConfiguration configuration, IConnectionHandler connectionHandler,
-            IEnumerable<IMessageHandler> messageHandlers)
+        public PioneerConnection(ILogger<PioneerConnection> logger, IConfiguration configuration, IEnumerable<IMessageHandler> messageHandlers)
         {
             this.logger = logger;
-            this.connectionHandler = connectionHandler;
             this.messageHandlers = messageHandlers;
             this.connectionInfo = configuration.ConnectionInfo;
         }
@@ -39,16 +36,15 @@ namespace PioneerControlToMqtt
             catch (SocketException e)
             {
                 logger.LogError(e, "An error occured trying to connect");
-                await Reconnect();
+                throw;
             }
 
-            connectionHandler.Reset();
             logger.LogInformation("Connected");
-
             await Task.WhenAll(messageHandlers.Select(p => p.SubscribeToCommandTopic()));
 
-            DisconnectLoop();
+#pragma warning disable 4014
             ReceiveLoop();
+#pragma warning restore 4014
         }
 
         public async Task SendCommandAsync(string command)
@@ -60,28 +56,9 @@ namespace PioneerControlToMqtt
             await socket.SendAsync(segment, SocketFlags.None);
         }
 
-        private async Task DisconnectLoop()
-        {
-            while (socket.Connected && connectionHandler.IsConnected)
-            {
-                await Task.Delay(500);
-            }
-
-            socket.Disconnect(true);
-            logger.LogInformation("Connection closed");
-            await Reconnect();
-        }
-
-        private async Task Reconnect()
-        {
-            await Task.Delay(TimeSpan.FromSeconds(5));
-            logger.LogInformation("Reconnecting");
-            await ConnectAsync();
-        }
-
         private async Task ReceiveLoop()
         {
-            while (socket.Connected && connectionHandler.IsConnected)
+            while (true)
             {
                 var message = await ReceiveAsync();
                 if (string.IsNullOrWhiteSpace(message)) continue;

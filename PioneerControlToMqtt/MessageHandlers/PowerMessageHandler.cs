@@ -17,7 +17,7 @@ namespace PioneerControlToMqtt.MessageHandlers
 
         public PowerMessageHandler(ILogger<PowerMessageHandler> logger, IConfiguration configuration,
             Lazy<IPioneerConnection> pioneerConnection, IMqttClient mqttClient) 
-            : base(logger, configuration, mqttClient)
+            : base(configuration, mqttClient)
         {
             this.logger = logger;
             this.pioneerConnection = pioneerConnection;

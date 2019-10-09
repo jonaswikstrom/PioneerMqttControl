@@ -11,14 +11,12 @@ namespace PioneerControlToMqtt.MessageHandlers
     public class HeartbeatMessageHandler : MessageHandler
     {
         private readonly ILogger<HeartbeatMessageHandler> logger;
-        private readonly IConnectionHandler connectionHandler;
         private readonly IMqttClient mqttClient;
 
-        public HeartbeatMessageHandler(ILogger<HeartbeatMessageHandler> logger, IConfiguration configuration, IConnectionHandler connectionHandler, IMqttClient mqttClient)
-            : base(logger, configuration, mqttClient)
+        public HeartbeatMessageHandler(ILogger<HeartbeatMessageHandler> logger, IConfiguration configuration, IMqttClient mqttClient)
+            : base(configuration, mqttClient)
         {
             this.logger = logger;
-            this.connectionHandler = connectionHandler;
             this.mqttClient = mqttClient;
         }
 
@@ -27,9 +25,7 @@ namespace PioneerControlToMqtt.MessageHandlers
         {
             var now = DateTime.Now;
             logger.LogInformation($"Hartbeat {now}");
-            connectionHandler.Reset();
-
-            await mqttClient.PublishAsync($"{Topic}", now.ToString("yyyyMMdd HH:mm:ss"));
+            await mqttClient.PublishAsync($"{Topic}", now.ToString("yyyy-MM-dd HH:mm:ss"));
         }
 
         protected override string Topic => "heartbeat";

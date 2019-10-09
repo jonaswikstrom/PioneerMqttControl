@@ -8,12 +8,10 @@ namespace PioneerControlToMqtt.MessageHandlers
 {
     public abstract class MessageHandler : IMessageHandler
     {
-        private readonly ILogger logger;
         private readonly IMqttClient mqttClient;
 
-        protected MessageHandler(ILogger logger, IConfiguration configuration, IMqttClient mqttClient)
+        protected MessageHandler(IConfiguration configuration, IMqttClient mqttClient)
         {
-            this.logger = logger;
             this.mqttClient = mqttClient;
         }
 
@@ -28,16 +26,16 @@ namespace PioneerControlToMqtt.MessageHandlers
             await Task.Delay(1000);
         }
 
-        protected abstract Regex Regex { get; }
-
-        protected abstract Task DoHandleMessage(string message);
-
-        protected abstract string Topic { get; }
-
         public async Task SubscribeToCommandTopic()
         {
             await mqttClient.SubscribeCommandTopicAsync($"{Topic}/cmnd", OnCommand);
         }
+
+        protected abstract Regex Regex { get; }
+        protected abstract string Topic { get; }
+
+        protected abstract Task DoHandleMessage(string message);
+
 
         protected abstract Task OnCommand(string payload);
     }

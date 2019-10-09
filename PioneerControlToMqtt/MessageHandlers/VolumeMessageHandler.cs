@@ -16,7 +16,7 @@ namespace PioneerControlToMqtt.MessageHandlers
         private int? currentVolume;
 
         public VolumeMessageHandler(ILogger<VolumeMessageHandler> logger, IConfiguration configuration, 
-            Lazy<IPioneerConnection> pioneerConnection, IMqttClient mqttClient) : base(logger, configuration, mqttClient)
+            Lazy<IPioneerConnection> pioneerConnection, IMqttClient mqttClient) : base(configuration, mqttClient)
         {
             this.logger = logger;
             this.pioneerConnection = pioneerConnection;
