@@ -60,7 +60,7 @@ namespace PioneerControlToMqtt.Mqtt
         public async Task PublishAsync(string topic, string payload)
         {
             var message = new MqttApplicationMessageBuilder()
-                .WithTopic($"{configuration.TopicRoot}{topic}")
+                .WithTopic($"{configuration.TopicRoot}/{topic}")
                 .WithPayload(payload)
                 .WithRetainFlag()
                 .Build();
