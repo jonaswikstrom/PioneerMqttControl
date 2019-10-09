@@ -27,7 +27,7 @@ namespace PioneerControlToMqtt.MessageHandlers
         protected override Regex Regex => new Regex(@"^VOL\d\d\d$");
         protected override async Task DoHandleMessage(string message)
         {
-            if (volumeChange == true) return;
+            if (volumeChange) return;
 
             var volume = int.Parse(message.Replace("VOL", ""));
             currentVolume = volume;
