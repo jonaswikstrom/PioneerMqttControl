@@ -27,11 +27,15 @@ namespace PioneerControlToMqtt.MessageHandlers
         protected override Regex Regex => new Regex(@"^VOL\d\d\d$");
         protected override async Task DoHandleMessage(string message)
         {
-            if (volumeChange) return;
-
             var volume = int.Parse(message.Replace("VOL", ""));
             currentVolume = volume;
             logger.LogInformation($"Volume: {volume}");
+
+            if (volumeChange)
+            {
+                logger.LogInformation("Volume is changing, no publish is made");
+                return;
+            }
 
             await mqttClient.PublishAsync($"{Topic}", volume.ToString());
         }
@@ -42,8 +46,6 @@ namespace PioneerControlToMqtt.MessageHandlers
         {
             if (!int.TryParse(payload, out var volume)) return;
             if (volume > MaxVolume || volume < 0) return;
-
-            volumeChange = true;
             currentVolume = null;
 
             var cts = new CancellationTokenSource(TimeSpan.FromSeconds(1));
@@ -63,6 +65,8 @@ namespace PioneerControlToMqtt.MessageHandlers
             }
 
             if (currentVolume.Value == volume) return;
+
+            volumeChange = true;
             cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             var volumeCommand = currentVolume < volume ? PioneerCommand.VolumeUp : PioneerCommand.VolumeDown;
             do
