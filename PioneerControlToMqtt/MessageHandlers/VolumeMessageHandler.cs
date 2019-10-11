@@ -54,7 +54,7 @@ namespace PioneerControlToMqtt.MessageHandlers
 
             do
             {
-                await Task.Delay(300, cts.Token);
+                await Task.Delay(500, CancellationToken.None);
             } while (!cts.IsCancellationRequested && !currentVolume.HasValue);
 
             if (!currentVolume.HasValue)
@@ -72,7 +72,7 @@ namespace PioneerControlToMqtt.MessageHandlers
             do
             {
                 await connection.SendCommandAsync(volumeCommand);
-                await Task.Delay(300, CancellationToken.None);
+                await Task.Delay(500, CancellationToken.None);
 
                 if (volumeCommand == PioneerCommand.VolumeDown && currentVolume <= volume) break;
                 if (volumeCommand == PioneerCommand.VolumeUp && currentVolume >= volume) break;
@@ -82,6 +82,7 @@ namespace PioneerControlToMqtt.MessageHandlers
             } while (!cts.IsCancellationRequested);
 
             volumeChange = false;
+            await Task.Delay(200, CancellationToken.None);
             await connection.SendCommandAsync(PioneerCommand.VolumeInfo);
         }
     }

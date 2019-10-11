@@ -39,7 +39,7 @@ namespace PioneerControlToMqtt.MessageHandlers
             if (!int.TryParse(payload, out var result)) return;
             if (result < 0 || result > 99) return;
 
-            var command = $"{PioneerCommand.FunctionChange}{result.ToString().PadLeft(2, '0')}";
+            var command = $"{result.ToString().PadLeft(2, '0')}{PioneerCommand.FunctionChange}";
             await pioneerConnection.Value.SendCommandAsync(command);
         }
     }
