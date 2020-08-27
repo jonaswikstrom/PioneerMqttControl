@@ -75,7 +75,7 @@ namespace PioneerControlToMqtt.Mqtt
                 .Build();
 
             await client.PublishAsync(message);
-            logger.LogInformation($"Pubished '{settings.Value.TopicRoot}/{topic} {payload}'");
+            logger.LogInformation($"Published '{settings.Value.TopicRoot}/{topic} {payload}'");
         }
 
         public async Task DisconnectAsync()

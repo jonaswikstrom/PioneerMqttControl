@@ -60,7 +60,7 @@ namespace PioneerControlToMqtt.MessageHandlers
 
             if (!currentVolume.HasValue)
             {
-                logger.LogError("Current volume not set, exiting");
+                logger.LogInformation("Current volume not set, exiting");
                 volumeChange = false;
                 return;
             }

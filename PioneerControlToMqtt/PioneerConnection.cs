@@ -31,10 +31,10 @@ namespace PioneerControlToMqtt
         {
             if (socket.Connected) return;
 
-            logger.LogInformation($"Connecting Pioneer receiver at {settings.Value.Host}");
+            logger.LogInformation($"Connecting Pioneer receiver at {settings.Value.HostName}");
             try
             {
-                await socket.ConnectAsync(new IPEndPoint(IPAddress.Parse(settings.Value.Host), settings.Value.Port));
+                await socket.ConnectAsync(new IPEndPoint(IPAddress.Parse(settings.Value.HostName), settings.Value.Port));
             }
             catch (SocketException e)
             {
