@@ -71,7 +71,6 @@ namespace PioneerControlToMqtt.Mqtt
             var message = new MqttApplicationMessageBuilder()
                 .WithTopic($"{settings.Value.TopicRoot}/{topic}")
                 .WithPayload(payload)
-                .WithRetainFlag()
                 .Build();
 
             await client.PublishAsync(message);
