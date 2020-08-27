@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using PioneerControlToMqtt.Mqtt;
 
 namespace PioneerControlToMqtt.MessageHandlers
@@ -16,8 +17,8 @@ namespace PioneerControlToMqtt.MessageHandlers
         private int? currentVolume;
         private bool volumeChange;
 
-        public VolumeMessageHandler(ILogger<VolumeMessageHandler> logger, IConfiguration configuration, 
-            Lazy<IPioneerConnection> pioneerConnection, IMqttClient mqttClient) : base(configuration, mqttClient)
+        public VolumeMessageHandler(ILogger<VolumeMessageHandler> logger, IOptions<MqttSettings> settings, 
+            Lazy<IPioneerConnection> pioneerConnection, IMqttClient mqttClient) : base(settings, mqttClient)
         {
             this.logger = logger;
             this.pioneerConnection = pioneerConnection;

@@ -2,36 +2,39 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using PioneerControlToMqtt.Mqtt;
 
 namespace PioneerControlToMqtt
 {
     public class PioneerConnection : IPioneerConnection
     {
         private readonly ILogger<PioneerConnection> logger;
+        private readonly IOptions<PioneerControlSettings> settings;
         private readonly IEnumerable<IMessageHandler> messageHandlers;
-        private readonly PioneerConnectionInfo connectionInfo;
         private readonly Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-        public PioneerConnection(ILogger<PioneerConnection> logger, IConfiguration configuration, IEnumerable<IMessageHandler> messageHandlers)
+        public PioneerConnection(ILogger<PioneerConnection> logger, IOptions<PioneerControlSettings> settings, IEnumerable<IMessageHandler> messageHandlers)
         {
             this.logger = logger;
+            this.settings = settings;
             this.messageHandlers = messageHandlers;
-            this.connectionInfo = configuration.ConnectionInfo;
         }
 
         public async Task ConnectAsync()
         {
             if (socket.Connected) return;
 
-            logger.LogInformation($"Connecting {connectionInfo}");
+            logger.LogInformation($"Connecting Pioneer receiver at {settings.Value.Host}");
             try
             {
-                await socket.ConnectAsync(connectionInfo.IpEndPoint);
+                await socket.ConnectAsync(new IPEndPoint(IPAddress.Parse(settings.Value.Host), settings.Value.Port));
             }
             catch (SocketException e)
             {

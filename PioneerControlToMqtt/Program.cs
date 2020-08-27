@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Threading;
+using System.IO;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -10,16 +11,24 @@ using PioneerControlToMqtt.Mqtt;
 
 namespace PioneerControlToMqtt
 {
-    class Program
+    public class Program
     {
-
-        static async Task Main(string[] args)
+        public static async Task Main(string[] args)
         {
+            Console.WriteLine("Starting host for PioneerControlToMqtt");
+
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: false, true)
+                .AddEnvironmentVariables()
+                .Build();
+
             var hostBuilder = new HostBuilder().ConfigureServices(p =>
             {
                 p.AddLogging(p => p.AddConsole())
-                    .AddSingleton<IConfiguration, Configuration>()
-                    .AddSingleton<Mqtt.IMqttClient, Mqtt.MqttClient>()
+                    .Configure<MqttSettings>(configuration.GetSection("Mqtt"))
+                    .Configure<PioneerControlSettings>(configuration.GetSection("PioneerReceiver"))
+                    .AddSingleton<IMqttClient, MqttClient>()
                     .AddSingleton<IPioneerConnection, PioneerConnection>()
                     .AddSingleton<IMessageHandler, HeartbeatMessageHandler>()
                     .AddSingleton<IMessageHandler, PowerMessageHandler>()
@@ -30,33 +39,6 @@ namespace PioneerControlToMqtt
             });
 
             await hostBuilder.RunConsoleAsync();
-        }
-    }
-
-    public class PioneerControlHost : IHostedService
-    {
-        private readonly IMqttClient mqttClient;
-        private readonly ILogger<PioneerControlHost> logger;
-        private readonly IPioneerConnection pioneerConnection;
-
-        public PioneerControlHost(ILogger<PioneerControlHost> logger, IPioneerConnection pioneerConnection, Mqtt.IMqttClient mqttClient)
-        {
-            this.mqttClient = mqttClient;
-            this.logger = logger;
-            this.pioneerConnection = pioneerConnection;
-        }
-
-        public async Task StartAsync(CancellationToken cancellationToken)
-        {
-            await mqttClient.ConnectAsync();
-            await pioneerConnection.ConnectAsync();
-        }
-
-        public async Task StopAsync(CancellationToken cancellationToken)
-        {
-            await mqttClient.DisconnectAsync();
-            mqttClient.Dispose();
-            pioneerConnection.Dispose();
         }
     }
 }

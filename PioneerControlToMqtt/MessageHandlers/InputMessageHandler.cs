@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using PioneerControlToMqtt.Mqtt;
 
 namespace PioneerControlToMqtt.MessageHandlers
@@ -13,8 +14,8 @@ namespace PioneerControlToMqtt.MessageHandlers
         private readonly Lazy<IPioneerConnection> pioneerConnection;
         private readonly IMqttClient mqttClient;
 
-        public InputMessageHandler(ILogger<InputMessageHandler> logger, IConfiguration configuration, Lazy<IPioneerConnection> pioneerConnection,
-            IMqttClient mqttClient) : base(configuration, mqttClient)
+        public InputMessageHandler(ILogger<InputMessageHandler> logger, IOptions<MqttSettings> settings, Lazy<IPioneerConnection> pioneerConnection,
+            IMqttClient mqttClient) : base(settings, mqttClient)
         {
             this.logger = logger;
             this.pioneerConnection = pioneerConnection;

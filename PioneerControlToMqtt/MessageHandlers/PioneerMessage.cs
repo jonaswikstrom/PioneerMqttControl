@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using PioneerControlToMqtt.Mqtt;
 
 namespace PioneerControlToMqtt.MessageHandlers
@@ -10,7 +11,7 @@ namespace PioneerControlToMqtt.MessageHandlers
     {
         private readonly IMqttClient mqttClient;
 
-        protected MessageHandler(IConfiguration configuration, IMqttClient mqttClient)
+        protected MessageHandler(IOptions<MqttSettings> settings, IMqttClient mqttClient)
         {
             this.mqttClient = mqttClient;
         }
